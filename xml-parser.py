@@ -51,24 +51,51 @@ def mapProcessToSubjectCode():
                dict_processo_assunto[processo_num] = list_codigos
 
      # Prints the generated dictionary   
-     for registro in dict_processo_assunto:
+     for registro in dict_processo_assunto:            
           print ("PROCESSO: ", registro)
           print ("     CODIGOS: ", dict_processo_assunto[registro])
 
+     return dict_processo_assunto
+
 def readFromCSV():
-     with open('ASSUNTO DESCRICAO.csv', newline='') as csvfile:
+     dict_codigo_descricao = {}
+     
+     with open('DESCRICAO ASSUNTO.csv', newline='') as csvfile:
           reader = csv.DictReader(csvfile)
           for row in reader:
-               print(row['Cod_Pai'], row['Assunto_Descricao'])
+               dict_codigo_descricao[row['Cod_Pai']] = row['Assunto_Descricao']
+
+     for row in dict_codigo_descricao:
+          print(row, dict_codigo_descricao[row])
+
+     return dict_codigo_descricao
+
+def getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao):
+     # Instantiates a new dictionary, in which the key will be the lawsuit ID, and the value will be an array of each subject description
+     dict_processo_descricao = {}
+
+     # Iterates through each row of a dictionary
+     for row in dict_processo_assunto:
+          list_current_lawsuit_subjects = []
+          
+          # Iterates through each code on the value of a row (tipically an array)
+          for subject_code in dict_processo_assunto[row]:
+               # Gets the subject description based on its code
+               subject_description = dict_codigo_descricao[subject_code]
+
+               list_current_lawsuit_subjects.append(subject_description)
+
+          dict_processo_descricao[row] = list_current_lawsuit_subjects
+
+     print("\n\n\n\DICIONARIO FINAL ")
+     for row in dict_processo_descricao:
+          print(row, dict_processo_descricao[row])
+
+     return dict_processo_descricao
 
 def main():
-          mapProcessToSubjectCode()
-          readFromCSV()
-          # list_assuntos = processo.getElementsByTagName("assunto")
-
-          # for assunto in list_assuntos:
-          #      print('Código do assunto: ', assunto.getAttribute("codigoAssunto"))
-     
-     #printDataFromFieldName("dadosBasicos", "numero")
+          dict_processo_assunto = mapProcessToSubjectCode()
+          dict_codigo_descricao = readFromCSV()
+          dict_processo_descricao = getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao)
 
 main()
