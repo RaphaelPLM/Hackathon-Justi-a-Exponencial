@@ -13,10 +13,11 @@ import pyLDAvis.gensim
 import warnings
 
 # This function navigates through the XML data source, and extract all of it's lawsuits ID's and the related subject codes.
-def mapProcessToSubjectCode():
-     
+def mapProcessToSubjectCode(filename):
      # The first step is to parse data from a XML source.
-     doc = minidom.parse('TRF1_G2_20191112_48.xml')
+     doc = minidom.parse(filename)
+
+     print("FILENAME ", filename)
 
      # Instantiates an empty dictionary, that will be populated with parsed values, in the form {lawsuit_id: [array_of_subject_codes]}.
      dict_processo_assunto = {}
@@ -157,7 +158,19 @@ def visualize_lda(model, corpus, dictionary):
 ##############################################################
 
 def main():
-          dict_processo_assunto = mapProcessToSubjectCode()
+          
+          filename_suffix = ['1', '2', '48']
+
+          filenames = []
+
+          for suffix in filename_suffix:
+               filenames.append('TRF1_G2_20191112_' + suffix + '.xml')
+
+          dict_processo_assunto = {}
+
+          for filename in filenames:
+               dict_processo_assunto.update(mapProcessToSubjectCode(filename))
+
           dict_codigo_descricao = readFromCSV()
           dict_processo_descricao = getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao)
 
@@ -167,7 +180,7 @@ def main():
 
           sentences_words = remove_stopwords(sentences_words)
 
-          #generateBarChart(dict_assunto_freqs)
+          generateBarChart(dict_assunto_freqs)
 
           train_lda(sentences_words)
 
