@@ -2,29 +2,13 @@ import xml.dom.minidom as minidom
 import csv
 from operator import itemgetter
 import matplotlib.pyplot as plt
-
-# Default function for extracting data from XML based on tag_name
-def extractData(doc, tag_name):
-     list_objects = doc.getElementsByTagName(tag_name)
-     return list_objects
-
-# Function that prints data based on a tag_name and a field_name. *Currently, not in use
-def printDataFromFieldName(tag_name, field_name):
-     list_objects = extractData(tag_name)
-
-     for obj in list_objects:
-          print(obj.getAttribute(field_name))
-
-def generateBarChart(dict_freqs):     
-     
-     fig = plt.figure(figsize=(16, 9))
-     
-     plt.bar(range(len(dict_freqs)), list(dict_freqs.values()), align='center')
-     plt.xticks(range(len(dict_freqs)), list(dict_freqs.keys()), rotation='vertical')
-
-     fig.savefig('bar_chart.png', dpi = 500)
-
-     plt.show()
+from gensim.models import Word2Vec
+from gensim.models import LdaModel
+from gensim.corpora.dictionary import Dictionary
+from nltk.cluster import KMeansClusterer
+import nltk
+import pyLDAvis.gensim
+import warnings
 
 # This function navigates through the XML data source, and extract all of it's lawsuits ID's and the related subject codes.
 def mapProcessToSubjectCode():
@@ -82,6 +66,27 @@ def count_subject_freqs(dict_processo_assunto):
 
      return counted
 
+def sentences_words_generator(dict):
+     list_sentences_words = []
+     
+     for row in dict:
+          for subject_descripton in dict[row]:
+               list_words = subject_descripton.split()
+               list_sentences_words.append(list_words)
+
+     print(list_sentences_words)
+     
+     return list_sentences_words
+
+def sentences_generator(dict):
+     list_sentences = []
+
+     for row in dict:
+          for subject_description in dict[row]:
+               list_sentences.append(subject_description)
+
+     return list_sentences
+
 def count_elements(seq) -> dict: 
      hist = {} 
      for i in seq: 
@@ -125,6 +130,34 @@ def getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao):
 
      return dict_processo_descricao
 
+
+############### Data training and visualization #################
+def generateBarChart(dict_freqs):     
+     
+     fig = plt.figure(figsize=(16, 9))
+     
+     plt.bar(range(len(dict_freqs)), list(dict_freqs.values()), align='center')
+     plt.xticks(range(len(dict_freqs)), list(dict_freqs.keys()), rotation='vertical')
+
+     fig.savefig('bar_chart.png', dpi = 500)
+
+     plt.show()
+
+def train_lda(training_data):
+     dictionary = Dictionary(training_data)
+     corpus = [dictionary.doc2bow(sentence) for sentence in training_data]
+
+     model = LdaModel(corpus, num_topics=10)
+
+     visualize_lda(model, corpus, dictionary)
+
+def visualize_lda(model, corpus, dictionary):
+     warnings.filterwarnings("ignore", category=DeprecationWarning) 
+     visualization = pyLDAvis.gensim.prepare(model, corpus, dictionary)
+
+     pyLDAvis.save_html(visualization, 'LDA_Visualization.html')
+##############################################################
+
 def main():
           dict_processo_assunto = mapProcessToSubjectCode()
           dict_codigo_descricao = readFromCSV()
@@ -132,6 +165,11 @@ def main():
 
           dict_assunto_freqs = count_subject_freqs(dict_processo_assunto)
 
-          generateBarChart(dict_assunto_freqs)
+          sentences = sentences_generator(dict_processo_descricao)
+          sentences_words = sentences_words_generator(dict_processo_descricao)
+          
+          #generateBarChart(dict_assunto_freqs)
+
+          train_lda(sentences_words)
 
 main()
