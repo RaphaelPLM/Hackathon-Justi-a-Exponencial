@@ -1,6 +1,7 @@
 import xml.dom.minidom as minidom
 import csv
 from operator import itemgetter
+import matplotlib.pyplot as plt
 
 # Default function for extracting data from XML based on tag_name
 def extractData(doc, tag_name):
@@ -13,6 +14,17 @@ def printDataFromFieldName(tag_name, field_name):
 
      for obj in list_objects:
           print(obj.getAttribute(field_name))
+
+def generateBarChart(dict_freqs):     
+     
+     fig = plt.figure(figsize=(16, 9))
+     
+     plt.bar(range(len(dict_freqs)), list(dict_freqs.values()), align='center')
+     plt.xticks(range(len(dict_freqs)), list(dict_freqs.keys()), rotation='vertical')
+
+     fig.savefig('bar_chart.png', dpi = 500)
+
+     plt.show()
 
 # This function navigates through the XML data source, and extract all of it's lawsuits ID's and the related subject codes.
 def mapProcessToSubjectCode():
@@ -67,7 +79,7 @@ def count_subject_freqs(dict_processo_assunto):
                counted = count_elements(assunto)
      
      print(counted)
-     
+
      return counted
 
 def count_elements(seq) -> dict: 
@@ -118,6 +130,8 @@ def main():
           dict_codigo_descricao = readFromCSV()
           dict_processo_descricao = getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao)
 
-          count_subject_freqs(dict_processo_assunto)
+          dict_assunto_freqs = count_subject_freqs(dict_processo_assunto)
+
+          generateBarChart(dict_assunto_freqs)
 
 main()
