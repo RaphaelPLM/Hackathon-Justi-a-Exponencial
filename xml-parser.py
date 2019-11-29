@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 from gensim.models import Word2Vec
 from gensim.models import LdaModel
 from gensim.corpora.dictionary import Dictionary
+from gensim.utils import lemmatize, simple_preprocess
 from nltk.cluster import KMeansClusterer
+from nltk.corpus import stopwords
 import nltk
 import pyLDAvis.gensim
 import warnings
@@ -66,6 +68,12 @@ def count_subject_freqs(dict_processo_assunto):
 
      return counted
 
+def remove_stopwords(texts):
+    stop_words = nltk.corpus.stopwords.words('portuguese')
+    stop_words.extend(['art', 'cf'])
+
+    return [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]
+
 def sentences_words_generator(dict):
      list_sentences_words = []
      
@@ -77,15 +85,6 @@ def sentences_words_generator(dict):
      print(list_sentences_words)
      
      return list_sentences_words
-
-def sentences_generator(dict):
-     list_sentences = []
-
-     for row in dict:
-          for subject_description in dict[row]:
-               list_sentences.append(subject_description)
-
-     return list_sentences
 
 def count_elements(seq) -> dict: 
      hist = {} 
@@ -147,12 +146,11 @@ def train_lda(training_data):
      dictionary = Dictionary(training_data)
      corpus = [dictionary.doc2bow(sentence) for sentence in training_data]
 
-     model = LdaModel(corpus, num_topics=10)
+     model = LdaModel(corpus, num_topics=4)
 
      visualize_lda(model, corpus, dictionary)
 
 def visualize_lda(model, corpus, dictionary):
-     warnings.filterwarnings("ignore", category=DeprecationWarning) 
      visualization = pyLDAvis.gensim.prepare(model, corpus, dictionary)
 
      pyLDAvis.save_html(visualization, 'LDA_Visualization.html')
@@ -165,9 +163,10 @@ def main():
 
           dict_assunto_freqs = count_subject_freqs(dict_processo_assunto)
 
-          sentences = sentences_generator(dict_processo_descricao)
           sentences_words = sentences_words_generator(dict_processo_descricao)
-          
+
+          sentences_words = remove_stopwords(sentences_words)
+
           #generateBarChart(dict_assunto_freqs)
 
           train_lda(sentences_words)
