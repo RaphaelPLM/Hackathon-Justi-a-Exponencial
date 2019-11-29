@@ -57,6 +57,26 @@ def mapProcessToSubjectCode():
 
      return dict_processo_assunto
 
+def count_subject_freqs(dict_processo_assunto):
+     assunto = [] 
+     counted = {}
+     
+     for registro in dict_processo_assunto: 
+          for registro2 in dict_processo_assunto[registro]: 
+               assunto.append(registro2) 
+               counted = count_elements(assunto)
+     
+     print(counted)
+     
+     return counted
+
+def count_elements(seq) -> dict: 
+     hist = {} 
+     for i in seq: 
+          hist[i] = hist.get(i, 0) + 1 
+          
+     return hist
+
 def readFromCSV():
      dict_codigo_descricao = {}
      
@@ -97,5 +117,7 @@ def main():
           dict_processo_assunto = mapProcessToSubjectCode()
           dict_codigo_descricao = readFromCSV()
           dict_processo_descricao = getSubjectDescriptionFromCode(dict_processo_assunto, dict_codigo_descricao)
+
+          count_subject_freqs(dict_processo_assunto)
 
 main()
